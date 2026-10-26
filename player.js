@@ -4,16 +4,15 @@ function createPlayer(cfg) {
   const diff = DIFFS[cfg.diff] || DIFFS.normal;
   const attrs = {};
   for (const k of ATTR_KEYS) {
-    attrs[k] = clamp(Math.round(gauss(35 + diff.startBoost, 6)), 20, 70);
+    attrs[k] = clamp(Math.round(gauss(32 + diff.startBoost, 7)), 15, 75);
   }
   return {
     name: cfg.name || "創辦人",
-    age: cfg.age || 25,
+    age: cfg.age || 26,
     attrs,
     potential: ri(diff.potMin, diff.potMax),
-    morale: 70,
-    energy: 100,
-    reputation: 10
+    morale: 75,
+    reputation: 5
   };
 }
 
@@ -25,5 +24,6 @@ function calcOverall(p) {
 
 function trainAttr(state, key, amount) {
   const p = state.player;
-  p.attrs[key] = clamp(p.attrs[key] + amount, 1, 99);
+  const potBrake = p.potential > calcOverall(p) ? 1 : 0.3;
+  p.attrs[key] = clamp(p.attrs[key] + amount * potBrake, 1, 99);
 }

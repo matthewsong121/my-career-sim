@@ -1,19 +1,24 @@
 "use strict";
 
 const Saves = {
-  key: "career-sim-saves",
+  key: "career-sim-v2",
   list() {
     try { return JSON.parse(localStorage.getItem(this.key) || "[]"); }
     catch { return []; }
   },
   save(slot, state) {
     const all = this.list();
-    all[slot] = JSON.parse(JSON.stringify(state));
-    localStorage.setItem(this.key, JSON.stringify(all.slice(0, 5)));
+    const copy = JSON.parse(JSON.stringify(state));
+    delete copy.rng;
+    all[slot] = copy;
+    localStorage.setItem(this.key, JSON.stringify(all.slice(0, 8)));
   },
   load(slot) {
     const all = this.list();
-    return all[slot] ? JSON.parse(JSON.stringify(all[slot])) : null;
+    if (!all[slot]) return null;
+    const s = JSON.parse(JSON.stringify(all[slot]));
+    s.rng = mulberry32(s.seed);
+    return s;
   }
 };
 
@@ -47,6 +52,16 @@ const App = {
   saveAndMenu() {
     if (this.state) Saves.save(this.slot, this.state);
     this.menu();
+  },
+
+  exportSave() {
+    if (!this.state) return;
+    const data = JSON.stringify(this.state, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `career-${this.state.player.name}-${this.state.seed}.json`;
+    a.click();
   },
 
   menu() {
